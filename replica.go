@@ -14,12 +14,12 @@ type (
 	SlotCommandMap map[SlotID]Command
 	Replica        struct {
 		*Process                 // Incoming process and mailbox
-		slotIn    SlotID         // Index of the next slot which can be proposed
-		slotOut   SlotID         // Index of the slot for which a decision needs to be Made
-		requests  []Command      // Requests which have not been proposed or decided
-		proposals SlotCommandMap // Requests which have been proposed but not decided indexed by slot number
-		decisions SlotCommandMap // Requests which have been decided indexed by the slot number
-		config    *Configuration // Configuration; primarily the leader configuration
+		SlotIn    SlotID         // Index of the next slot which can be proposed
+		SlotOut   SlotID         // Index of the slot for which a decision needs to be Made
+		Requests  []Command      // Requests which have not been proposed or decided
+		Proposals SlotCommandMap // Requests which have been proposed but not decided indexed by slot number
+		Decisions SlotCommandMap // Requests which have been decided indexed by the slot number
+		Config    *Configuration // Configuration; primarily the leader configuration
 	}
 )
 
@@ -35,56 +35,59 @@ func (s SlotCommandMap) remove(slot SlotID) {
 func NewReplica(replicaID string, initialConfig *Configuration) *Replica {
 	return &Replica{
 		Process:   NewProcess(replicaID),
-		slotIn:    InitialSlotID,
-		slotOut:   InitialSlotID,
-		requests:  make([]Command, 0, InitialRequestSize),
-		proposals: make(SlotCommandMap),
-		decisions: make(SlotCommandMap),
-		config:    initialConfig,
+		SlotIn:    InitialSlotID,
+		SlotOut:   InitialSlotID,
+		Requests:  make([]Command, 0, InitialRequestSize),
+		Proposals: make(SlotCommandMap),
+		Decisions: make(SlotCommandMap),
+		Config:    initialConfig,
 	}
 }
 
 func (r *Replica) Run() {
-	ctxLog := log.WithFields(log.Fields{
-		"id": r.pid,
-	})
-	ctxLog.Debug("Run")
 	for {
 		msg := r.inbox.WaitForItem()
-		switch v := msg.(type) {
-		case *RequestMessage:
-			rm := msg.(*RequestMessage)
-			ctxLog.Debugf("ReqMessage %v", rm)
-			r.requests = append(r.requests, rm.C)
-
-		case *DecisionMessage:
-			dm := msg.(*DecisionMessage)
-			ctxLog.Debugf("DecisionMessage %v", dm)
-			// ToDo: check to see if a command already exists
-			r.decisions[dm.SlotID] = dm.C
-			for r.decisions.contains(r.slotOut) {
-				decidedCmd := r.decisions[r.slotOut]
-				if r.proposals.contains(r.slotOut) {
-					proposedCmd := r.proposals[r.slotOut]
-					if proposedCmd != decidedCmd {
-						r.requests = append(r.requests, proposedCmd)
-					}
-					r.proposals.remove(r.slotOut)
-				}
-				r.perform(decidedCmd)
-				r.slotOut++
-			}
-
-		default:
-			log.Panicf("Unknown message type %v", v)
-		}
-		r.propose()
+		r.HandleMsg(msg.(Message))
+		r.Propose()
 	}
 }
 
-func (r *Replica) perform(c Command) {
-	for slot := InitialSlotID; slot < r.slotOut; slot++ {
-		if r.decisions[slot] == c {
+func (r *Replica) HandleMsg(msg Message) {
+	ctxLog := log.WithFields(log.Fields{
+		"id": r.pid,
+	})
+	switch v := msg.(type) {
+	case *RequestMessage:
+		rm := msg.(*RequestMessage)
+		ctxLog.Debugf("ReqMessage %v", rm)
+		r.Requests = append(r.Requests, rm.C)
+
+	case *DecisionMessage:
+		dm := msg.(*DecisionMessage)
+		ctxLog.Debugf("DecisionMessage %v", dm)
+		// ToDo: check to see if a command already exists
+		r.Decisions[dm.SlotID] = dm.C
+		for r.Decisions.contains(r.SlotOut) {
+			decidedCmd := r.Decisions[r.SlotOut]
+			if r.Proposals.contains(r.SlotOut) {
+				proposedCmd := r.Proposals[r.SlotOut]
+				if proposedCmd != decidedCmd {
+					r.Requests = append(r.Requests, proposedCmd)
+				}
+				r.Proposals.remove(r.SlotOut)
+			}
+			r.Perform(decidedCmd)
+			r.SlotOut++
+		}
+
+	default:
+		log.Panicf("Unknown message type %v", v)
+	}
+}
+
+func (r *Replica) Perform(c Command) {
+	for slot := InitialSlotID; slot < r.SlotOut; slot++ {
+		if r.Decisions[slot] == c {
 			log.Debugf("Command %v detected in decision history", c)
 			return
 		}
@@ -99,26 +102,26 @@ func (r *Replica) perform(c Command) {
 	// ToDo: Apply state here!!
 }
 
-func (r *Replica) propose() {
-	for  {
-		if len(r.requests) == 0 ||  r.slotIn >= (r.slotOut + Window) {
+func (r *Replica) Propose() {
+	for {
+		if len(r.Requests) == 0 || r.SlotIn >= (r.SlotOut+Window) {
 			break
 		}
 
-		req := r.requests[0]
-		r.requests = r.requests[1:]
-		if r.slotIn > Window && r.decisions.contains(r.slotIn-Window) {
-			cmd, ok := r.proposals[r.slotIn-Window].(*ReconfigCommand)
+		req := r.Requests[0]
+		r.Requests = r.Requests[1:]
+		if r.SlotIn > Window && r.Decisions.contains(r.SlotIn-Window) {
+			cmd, ok := r.Proposals[r.SlotIn-Window].(*ReconfigCommand)
 			if ok {
 				log.Debugf("Updating configuration %v", cmd.Config)
-				r.config = cmd.Config
+				r.Config = cmd.Config
 			}
 		}
 
-		r.proposals[r.slotIn] = req
-		for _, leader := range r.config.Leaders {
-			leader.SendMessage(NewProposeMessage(r.pid, r.slotIn, req))
+		r.Proposals[r.SlotIn] = req
+		for _, leader := range r.Config.Leaders {
+			leader.SendMessage(NewProposeMessage(r.pid, r.SlotIn, req))
 		}
-		r.slotIn++
+		r.SlotIn++
 	}
 }

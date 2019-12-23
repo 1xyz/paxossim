@@ -9,7 +9,12 @@ type (
 	SlotID int
 
 	Configuration struct {
-		Leaders []*Leader
+		Leaders []Entity
+	}
+
+	Entity interface {
+		Run()
+		SendMessage(m Message)
 	}
 
 	Process struct {
