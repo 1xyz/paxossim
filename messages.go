@@ -67,3 +67,16 @@ func (p *ProposeMessage) String() string {
 	return fmt.Sprintf("%v Slot: %v Command: %v",
 		p.BasicMessage, p.SlotID, p.C)
 }
+
+func NewDecisionMessage(source string, id SlotID, command Command) *DecisionMessage {
+	return &DecisionMessage{
+		BasicMessage: &BasicMessage{source},
+		SlotID:       id,
+		C:            command,
+	}
+}
+
+func (d *DecisionMessage) String() string {
+	return fmt.Sprintf("%v Slot: %v Command: %v",
+		d.BasicMessage, d.SlotID, d.C)
+}

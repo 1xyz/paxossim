@@ -18,7 +18,7 @@ type Env struct {
 }
 
 func NewEnv(nReplicas int, nClients int, nLeaders int) *Env {
-	leaders := make([]*paxossim.Leader, 0, nLeaders)
+	leaders := make([]paxossim.Entity, 0, nLeaders)
 	for i := 0; i < nLeaders; i++ {
 		id := fmt.Sprintf("Leader %d", i)
 		leaders = append(leaders, paxossim.NewLeader(id))
