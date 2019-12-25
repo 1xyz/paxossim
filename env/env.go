@@ -12,12 +12,23 @@ const (
 )
 
 type Env struct {
-	config   *paxossim.Configuration
-	replicas []*paxossim.Replica
-	clients  []*paxossim.Client
+	config    *paxossim.Configuration
+	replicas  []*paxossim.Replica
+	clients   []*paxossim.Client
+	acceptors []*paxossim.Acceptor
 }
 
-func NewEnv(nReplicas int, nClients int, nLeaders int) *Env {
+func NewEnv(nFailures int, nClients int) *Env {
+	nReplicas := nFailures + 1
+	nLeaders := nFailures + 1
+	nAcceptors := (2 * nFailures) + 1
+
+	// create the acceptors
+	acceptors := make([]*paxossim.Acceptor, nAcceptors, nAcceptors)
+	for i := 0; i < nAcceptors; i++ {
+		acceptors[i] = paxossim.NewAcceptor(fmt.Sprintf("Acceptor %d", i))
+	}
+
 	leaders := make([]paxossim.Entity, 0, nLeaders)
 	for i := 0; i < nLeaders; i++ {
 		id := fmt.Sprintf("Leader %d", i)
@@ -46,13 +57,17 @@ func NewEnv(nReplicas int, nClients int, nLeaders int) *Env {
 	}
 
 	return &Env{
-		config:   config,
-		replicas: replicas,
-		clients:  clients,
+		config:    config,
+		replicas:  replicas,
+		clients:   clients,
+		acceptors: acceptors,
 	}
 }
 
 func (e *Env) Run() {
+	for _, a := range e.acceptors {
+		go a.Run()
+	}
 	for _, l := range e.config.Leaders {
 		go l.Run()
 	}
