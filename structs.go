@@ -3,6 +3,7 @@ package paxossim
 import (
 	"fmt"
 	"github.com/1xyz/paxossim/queue"
+	"strings"
 )
 
 type (
@@ -28,6 +29,19 @@ type (
 		GetCommandID() string
 		GetOp() string
 	}
+
+	BallotNumber struct {
+		Round    int
+		LeaderID string
+	}
+
+	PValue struct {
+		BN   *BallotNumber
+		Slot SlotID
+		C    Command
+	}
+
+	PValues map[PValue]bool
 
 	// BasicCommand -  a unique command issued by the client
 	// to a Replica such that: For a unique <ClientID, CommandID>
@@ -76,4 +90,35 @@ func (b *BasicCommand) GetCommandID() string {
 func (b *BasicCommand) String() string {
 	return fmt.Sprintf("ClientID: %v CommandID: %v Op: %v",
 		b.ClientID, b.CommandID, b.Op)
+}
+
+// Compare returns an integer comparing two BallotNumbers lexicographically.
+// The result will be:
+//   0 if bn == otherBn,
+//   -1 if bn < otherBn, and
+//   +1 if bn > otherBn.
+func (bn *BallotNumber) CompareTo(otherBn *BallotNumber) int {
+	if bn == otherBn {
+		return 0
+	}
+	c1 := bn.Round - otherBn.Round
+	if c1 == 0 {
+		return strings.Compare(bn.LeaderID, otherBn.LeaderID)
+	} else if c1 > 0 {
+		return 1
+	} else {
+		return -1
+	}
+}
+
+func (pvalues *PValues) set(value *PValue) {
+	_, ok := (*pvalues)[*value]
+	if !ok {
+		(*pvalues)[*value] = true
+	}
+}
+
+func (pvalues *PValues) Contains(value *PValue) bool {
+	_, ok := (*pvalues)[*value]
+	return ok
 }

@@ -1,6 +1,8 @@
 package paxossim
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type (
 	// An Message in this Paxos system
@@ -32,6 +34,42 @@ type (
 		*BasicMessage
 		SlotID SlotID
 		C      Command
+	}
+
+	PhaseMessage struct {
+		*BasicMessage
+		S Entity
+	}
+
+	// Message sent by the Leader(Scout) to the
+	// Acceptors containing the BallotNumber during the
+	// Phase1 of Paxos
+	P1aMessage struct {
+		*PhaseMessage
+		BN *BallotNumber
+	}
+
+	// Message sent by the Acceptor in response to the
+	// P1aMessage containing the current BallotNumber and
+	// the list of accepted PValues
+	P1bMessage struct {
+		*BasicMessage
+		BN       *BallotNumber
+		Accepted *PValues
+	}
+
+	// Message sent by the Leader(Commander) to the
+	// Acceptors containing the PValue (BallotNum, Slot, Command)
+	P2aMessage struct {
+		*PhaseMessage
+		PV *PValue
+	}
+
+	// Message returned by the Acceptor back to Commander
+	// as a response to the P2aMessage
+	P2bMessage struct {
+		*BasicMessage
+		BN *BallotNumber
 	}
 )
 
@@ -79,4 +117,39 @@ func NewDecisionMessage(source string, id SlotID, command Command) *DecisionMess
 func (d *DecisionMessage) String() string {
 	return fmt.Sprintf("%v Slot: %v Command: %v",
 		d.BasicMessage, d.SlotID, d.C)
+}
+
+func NewP1aMessage(source string, entity Entity, bn *BallotNumber) *P1aMessage {
+	return &P1aMessage{
+		PhaseMessage: &PhaseMessage{
+			BasicMessage: &BasicMessage{Src: source},
+			S:            entity,
+		},
+		BN: bn,
+	}
+}
+
+func NewP1bMessage(source string, bn *BallotNumber, pv *PValues) *P1bMessage {
+	return &P1bMessage{
+		BasicMessage: &BasicMessage{Src: source},
+		BN:           bn,
+		Accepted:     pv,
+	}
+}
+
+func NewP2aMessage(source string, entity Entity, pv *PValue) *P2aMessage {
+	return &P2aMessage{
+		PhaseMessage: &PhaseMessage{
+			BasicMessage: &BasicMessage{Src: source},
+			S:            entity,
+		},
+		PV: pv,
+	}
+}
+
+func NewP2bMessage(source string, bn *BallotNumber) *P2bMessage {
+	return &P2bMessage{
+		BasicMessage: &BasicMessage{Src: source},
+		BN:           bn,
+	}
 }

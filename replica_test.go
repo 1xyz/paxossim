@@ -135,9 +135,9 @@ func TestReplica_HandleMsg_NewDecisionNotMatchingProposal(t *testing.T) {
 	r.Propose()
 
 	cmd2 := &paxossim.BasicCommand{
-		ClientID:   "client:2",
+		ClientID:  "client:2",
 		CommandID: "1",
-		Op:      "SUBTRACT",
+		Op:        "SUBTRACT",
 	}
 	decision := paxossim.NewDecisionMessage("leader:1", s, cmd2)
 	r.HandleMsg(decision)

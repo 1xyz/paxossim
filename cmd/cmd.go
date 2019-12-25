@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	NReplicas = 3
-	NClients = 2
-	NLeaders = 3
+	NClients  = 2
+	NFailures = 1
 )
 
 func init() {
@@ -22,8 +21,8 @@ func init() {
 }
 
 func main() {
-	e := env.NewEnv(NReplicas, NClients, NLeaders)
-	log.WithFields(log.Fields{"e": e,}).Debug("Constructed environment")
+	e := env.NewEnv(NFailures, NClients)
+	log.WithFields(log.Fields{"e": e}).Debug("Constructed environment")
 	e.Run()
 	time.Sleep(10 * time.Second)
 	e.Stop()
