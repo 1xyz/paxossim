@@ -71,6 +71,13 @@ type (
 		*BasicMessage
 		BN *BallotNumber
 	}
+
+	// Message sent by the Scout or a Commander indicating
+	// that a BN is pre-empted by a new ballot number
+	PreemptMessage struct {
+		*BasicMessage
+		BN *BallotNumber
+	}
 )
 
 func (b *BasicMessage) Source() string {
@@ -149,6 +156,13 @@ func NewP2aMessage(source string, entity Entity, pv *PValue) *P2aMessage {
 
 func NewP2bMessage(source string, bn *BallotNumber) *P2bMessage {
 	return &P2bMessage{
+		BasicMessage: &BasicMessage{Src: source},
+		BN:           bn,
+	}
+}
+
+func NewPremptedMessage(source string, bn *BallotNumber) *PreemptMessage {
+	return &PreemptMessage{
 		BasicMessage: &BasicMessage{Src: source},
 		BN:           bn,
 	}
