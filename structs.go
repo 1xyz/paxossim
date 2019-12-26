@@ -14,6 +14,7 @@ type (
 	}
 
 	Entity interface {
+		ID() string
 		Run()
 		SendMessage(m Message)
 	}
@@ -67,8 +68,12 @@ func NewProcess(pid string) *Process {
 	}
 }
 
-func (p Process) String() string {
+func (p Process) ID() string {
 	return p.pid
+}
+
+func (p Process) String() string {
+	return p.ID()
 }
 
 func (p Process) SendMessage(m Message) {
