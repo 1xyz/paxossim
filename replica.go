@@ -86,6 +86,9 @@ func (r *Replica) HandleMsg(msg Message) {
 }
 
 func (r *Replica) Perform(c Command) {
+	// Different replicas might have proposed the same command for
+	// different slots. In this case we don't really want to apply
+	// the command at this replica more than once
 	for slot := InitialSlotID; slot < r.SlotOut; slot++ {
 		if r.Decisions[slot] == c {
 			log.Debugf("Command %v detected in decision history", c)

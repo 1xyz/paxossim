@@ -67,22 +67,3 @@ func (cmd *Commander) HandleMessage(p2Resp *P2bMessage, addrSet *StringSet) bool
 
 	return true
 }
-
-type StringSet map[string]bool
-
-func (ss StringSet) Contains(key string) bool {
-	_, ok := ss[key]
-	return ok
-}
-
-func (ss StringSet) Add(key string) {
-	ss[key] = true
-}
-
-func (ss StringSet) Remove(key string) {
-	delete(ss, key)
-}
-
-func (ss StringSet) Len() int {
-	return len(ss)
-}

@@ -46,7 +46,7 @@ func (a *Acceptor) HandleMsg(msg Message) {
 	case *P2aMessage:
 		p2Req := msg.(*P2aMessage)
 		if p2Req.PV.BN.CompareTo(a.BN) == 0 {
-			a.Accepted.set(p2Req.PV)
+			a.Accepted.Set(p2Req.PV)
 		}
 		p2Resp := NewP2bMessage(a.pid, a.BN)
 		p2Req.S.SendMessage(p2Resp)
