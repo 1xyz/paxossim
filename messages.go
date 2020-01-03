@@ -78,6 +78,14 @@ type (
 		*BasicMessage
 		BN *BallotNumber
 	}
+
+	// Message sent by the Scout to the Leader on a successful adoption
+	// of ballot by majority of the acceptors.
+	AdoptedMessage struct {
+		*BasicMessage
+		BN       *BallotNumber
+		Accepted *PValues
+	}
 )
 
 func (b *BasicMessage) Source() string {
@@ -165,5 +173,13 @@ func NewPremptedMessage(source string, bn *BallotNumber) *PreemptMessage {
 	return &PreemptMessage{
 		BasicMessage: &BasicMessage{Src: source},
 		BN:           bn,
+	}
+}
+
+func NewAdoptedMessage(source string, bn *BallotNumber, accepted *PValues) *AdoptedMessage {
+	return &AdoptedMessage{
+		BasicMessage: &BasicMessage{Src: source},
+		BN:           bn,
+		Accepted:     accepted,
 	}
 }
