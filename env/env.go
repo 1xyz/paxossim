@@ -15,7 +15,7 @@ type Env struct {
 	config    *paxossim.Configuration
 	replicas  []*paxossim.Replica
 	clients   []*paxossim.Client
-	acceptors []*paxossim.Acceptor
+	acceptors []paxossim.Entity
 }
 
 func NewEnv(nFailures int, nClients int) *Env {
@@ -24,30 +24,28 @@ func NewEnv(nFailures int, nClients int) *Env {
 	nAcceptors := (2 * nFailures) + 1
 
 	// create the acceptors
-	acceptors := make([]*paxossim.Acceptor, nAcceptors, nAcceptors)
+	acceptors := make([]paxossim.Entity, nAcceptors, nAcceptors)
 	for i := 0; i < nAcceptors; i++ {
 		acceptors[i] = paxossim.NewAcceptor(fmt.Sprintf("Acceptor %d", i))
 	}
 
-	leaders := make([]paxossim.Entity, 0, nLeaders)
+	config := paxossim.NewConfiguration(nLeaders)
+	leaders := make([]*paxossim.Leader, nLeaders, nLeaders)
 	for i := 0; i < nLeaders; i++ {
-		id := fmt.Sprintf("Leader %d", i)
-		leaders = append(leaders, paxossim.NewLeader(id))
-	}
-
-	config := &paxossim.Configuration{
-		Leaders: leaders,
+		leaders[i] = paxossim.NewLeader(fmt.Sprintf("Leader %d", i), acceptors)
+		config.AppendLeader(leaders[i])
 	}
 
 	// construct the replicas
-	replicas := make([]*paxossim.Replica, 0, nReplicas)
+	replicas := make([]*paxossim.Replica, nReplicas, nReplicas)
 	for i := 0; i < nReplicas; i++ {
-		id := fmt.Sprintf("replica: %d", i)
-		replicas = append(replicas, paxossim.NewReplica(id, config))
+		replicas[i] = paxossim.NewReplica(fmt.Sprintf("replica: %d", i), config)
+		// register this replica with the leader
+		for _, leader := range leaders {
+			leader.AppendReplica(replicas[i])
+		}
 	}
-	log.WithFields(log.Fields{
-		"nReplicas": nReplicas,
-	}).Debug("Constructed replicas")
+	log.WithFields(log.Fields{"nReplicas": nReplicas}).Debug("Constructed replicas")
 
 	// construct the clients
 	clients := make([]*paxossim.Client, 0, nClients)

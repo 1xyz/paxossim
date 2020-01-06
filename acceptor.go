@@ -35,6 +35,7 @@ func (a *Acceptor) HandleMsg(msg Message) {
 	switch v := msg.(type) {
 	case *P1aMessage:
 		p1Req := msg.(*P1aMessage)
+		ctxLog.Debugf("Recvd a P1aMessage %v", p1Req)
 		if p1Req.BN.CompareTo(a.BN) > 0 {
 			a.BN = p1Req.BN
 		}

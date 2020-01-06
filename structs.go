@@ -61,6 +61,15 @@ type (
 	}
 )
 
+func NewConfiguration(nLeaders int) *Configuration {
+	leaders := make([]Entity, 0, nLeaders)
+	return &Configuration{Leaders: leaders}
+}
+
+func (c *Configuration) AppendLeader(leader Entity) {
+	c.Leaders = append(c.Leaders, leader)
+}
+
 func NewProcess(pid string) *Process {
 	return &Process{
 		pid:   pid,
@@ -116,6 +125,15 @@ func (bn *BallotNumber) CompareTo(otherBn *BallotNumber) int {
 	}
 }
 
+func (bn *BallotNumber) String() string {
+	return fmt.Sprintf("(%d, %s)", bn.Round, bn.LeaderID)
+}
+
+func (pValue *PValue) String() string {
+	return fmt.Sprintf("(%v, %v, %v)",
+		pValue.BN, pValue.Slot, pValue.C)
+}
+
 func (pvalues *PValues) Set(value *PValue) {
 	_, ok := (*pvalues)[*value]
 	if !ok {
@@ -151,4 +169,24 @@ func (ss StringSet) Remove(key string) {
 
 func (ss StringSet) Len() int {
 	return len(ss)
+}
+
+type SlotCommandMap map[SlotID]Command
+
+func (s SlotCommandMap) Get(slot SlotID) (Command, bool) {
+	result, ok := s[slot]
+	return result, ok
+}
+
+func (s SlotCommandMap) Contains(slot SlotID) bool {
+	_, ok := s[slot]
+	return ok
+}
+
+func (s SlotCommandMap) Remove(slot SlotID) {
+	delete(s, slot)
+}
+
+func (s SlotCommandMap) Assign(slot SlotID, c Command) {
+	s[slot] = c
 }
