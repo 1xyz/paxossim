@@ -11,8 +11,7 @@ const (
 )
 
 type (
-	SlotCommandMap map[SlotID]Command
-	Replica        struct {
+	Replica struct {
 		*Process                 // Incoming process and mailbox
 		SlotIn    SlotID         // Index of the next slot which can be proposed
 		SlotOut   SlotID         // Index of the slot for which a decision needs to be Made
@@ -22,15 +21,6 @@ type (
 		Config    *Configuration // Configuration; primarily the leader configuration
 	}
 )
-
-func (s SlotCommandMap) contains(slot SlotID) bool {
-	_, ok := s[slot]
-	return ok
-}
-
-func (s SlotCommandMap) remove(slot SlotID) {
-	delete(s, slot)
-}
 
 func NewReplica(replicaID string, initialConfig *Configuration) *Replica {
 	return &Replica{
@@ -67,14 +57,14 @@ func (r *Replica) HandleMsg(msg Message) {
 		ctxLog.Debugf("DecisionMessage %v", dm)
 		// ToDo: check to see if a command already exists
 		r.Decisions[dm.SlotID] = dm.C
-		for r.Decisions.contains(r.SlotOut) {
+		for r.Decisions.Contains(r.SlotOut) {
 			decidedCmd := r.Decisions[r.SlotOut]
-			if r.Proposals.contains(r.SlotOut) {
+			if r.Proposals.Contains(r.SlotOut) {
 				proposedCmd := r.Proposals[r.SlotOut]
 				if proposedCmd != decidedCmd {
 					r.Requests = append(r.Requests, proposedCmd)
 				}
-				r.Proposals.remove(r.SlotOut)
+				r.Proposals.Remove(r.SlotOut)
 			}
 			r.Perform(decidedCmd)
 			r.SlotOut++
@@ -90,8 +80,9 @@ func (r *Replica) Perform(c Command) {
 	// different slots. In this case we don't really want to apply
 	// the command at this replica more than once
 	for slot := InitialSlotID; slot < r.SlotOut; slot++ {
+		// log.Infof("slot %v c %v decisions[slot]: %v", slot, c, r.Decisions[slot])
 		if r.Decisions[slot] == c {
-			log.Debugf("Command %v detected in decision history", c)
+			// log.Infof("Command %v detected in decision history", c)
 			return
 		}
 	}
@@ -103,6 +94,7 @@ func (r *Replica) Perform(c Command) {
 	}
 
 	// ToDo: Apply state here!!
+	log.Infof("(%v, %v, %v) r=%v", c.GetClientID(), c.GetCommandID(), c.GetOp(), r.pid)
 }
 
 func (r *Replica) Propose() {
@@ -113,7 +105,7 @@ func (r *Replica) Propose() {
 
 		req := r.Requests[0]
 		r.Requests = r.Requests[1:]
-		if r.SlotIn > Window && r.Decisions.contains(r.SlotIn-Window) {
+		if r.SlotIn > Window && r.Decisions.Contains(r.SlotIn-Window) {
 			cmd, ok := r.Proposals[r.SlotIn-Window].(*ReconfigCommand)
 			if ok {
 				log.Debugf("Updating configuration %v", cmd.Config)

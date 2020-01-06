@@ -144,6 +144,10 @@ func NewP1aMessage(source string, entity Entity, bn *BallotNumber) *P1aMessage {
 	}
 }
 
+func (p1a *P1aMessage) String() string {
+	return fmt.Sprintf("%v bn=%v", p1a.PhaseMessage, p1a.BN)
+}
+
 func NewP1bMessage(source string, bn *BallotNumber, pv *PValues) *P1bMessage {
 	return &P1bMessage{
 		BasicMessage: &BasicMessage{Src: source},

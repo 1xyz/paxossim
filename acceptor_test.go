@@ -114,7 +114,7 @@ func TestAcceptor_HandleMsg_PVRejected(t *testing.T) {
 	// assert that pvalue has not been accepted
 	assert.False(t, acceptor.Accepted.Contains(pv))
 
-	// assert that the Phase2 response contains the older BN
+	// assert that the Phase2 response Contains the older BN
 	assert.Equal(t, 1, fakeLeader.SendMessageCallCount())
 	p2resp, ok := fakeLeader.SendMessageArgsForCall(0).(*paxossim.P2bMessage)
 	assert.True(t, ok)

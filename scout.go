@@ -51,7 +51,7 @@ func (scout *Scout) BroadcastToAcceptors() StringSet {
 
 func (scout *Scout) HandleMessage(p1Response *P1bMessage, addrSet *StringSet) bool {
 	majority := float64(len(scout.Acceptors)) / 2
-	// ToDo: remove the addrSet compare case, we should just ignore cases when addresses don't match
+	// ToDo: Remove the addrSet compare case, we should just ignore cases when addresses don't match
 	if scout.BN.CompareTo(p1Response.BN) == 0 && addrSet.Contains(p1Response.Src) {
 		addrSet.Remove(p1Response.Src)
 		scout.pvalues.Update(p1Response.Accepted)
