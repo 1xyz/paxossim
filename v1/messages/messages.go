@@ -35,6 +35,13 @@ type DecisionMessage struct {
 	Command types.Command
 }
 
+func NewDecisionMessage(source v1.Addr, slot types.Slot, command types.Command) DecisionMessage {
+	return DecisionMessage{
+		basicMessage: basicMessage{src: source},
+		Slot:         slot,
+		Command:      command,
+	}
+}
 func (dm DecisionMessage) String() string {
 	return fmt.Sprintf("DecisionMessage: %v slot: %v command: %v",
 		dm.basicMessage, dm.Slot, dm.Command)
