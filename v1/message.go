@@ -7,8 +7,8 @@ import (
 // Message - interface intended to be implemented by
 // every message exchanged between Paxos Processes
 type Message interface {
-	// The source ProcessID of this message
-	Src() ProcessID
+	// The source Address of this message
+	Src() Addr
 }
 
 // MessageExchange - Facilitates message exchanges between Paxos processes.
@@ -30,14 +30,14 @@ type MessageExchange interface {
 // here the sendAll method sequentially sends message to each of recipients
 type basicMessageExchange struct {
 	// Lookup ProcessInbox by the process identifier
-	idToProcessInbox map[ProcessID]ProcessInbox
+	addrToProcessInbox map[Addr]ProcessInbox
 
 	// Lookup processes by the process type
 	typeToProcessInbox *typeToProcessMap
 }
 
-func (bme basicMessageExchange) Send(dest ProcessID, m Message) error {
-	v, ok := bme.idToProcessInbox[dest]
+func (bme basicMessageExchange) Send(dest Addr, m Message) error {
+	v, ok := bme.addrToProcessInbox[dest]
 	if !ok {
 		return fmt.Errorf("not-found: process with id %v not-found", dest)
 	}
@@ -60,21 +60,21 @@ func (bme basicMessageExchange) SendAll(pt ProcessType, m Message) error {
 }
 
 func (bme basicMessageExchange) Register(p ProcessInbox) error {
-	_, ok := bme.idToProcessInbox[p.ID()]
+	_, ok := bme.addrToProcessInbox[p.(Addr)]
 	if ok {
 		return fmt.Errorf("duplicate: process with id %v", p.ID())
 	}
-	bme.idToProcessInbox[p.ID()] = p
+	bme.addrToProcessInbox[p.(Addr)] = p
 	bme.typeToProcessInbox.put(p)
 	return nil
 }
 
 func (bme basicMessageExchange) UnRegister(p ProcessInbox) error {
-	_, ok := bme.idToProcessInbox[p.ID()]
+	_, ok := bme.addrToProcessInbox[p.(Addr)]
 	if !ok {
 		return fmt.Errorf("not-found: process with id %v", p.ID())
 	}
-	delete(bme.idToProcessInbox, p.ID())
+	delete(bme.addrToProcessInbox, p.(Addr))
 	bme.typeToProcessInbox.remove(p)
 	return nil
 }

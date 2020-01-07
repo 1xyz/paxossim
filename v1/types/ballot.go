@@ -26,14 +26,21 @@ func (bn BallotNumber) String() string {
 //   -1 if bn1 < bn2, and
 //   +1 if bn1 > bn2.
 func Compare(bn1 *BallotNumber, bn2 *BallotNumber) int {
-	res := bn1.Round - bn2.Round
+	res := returnOne(bn1.Round - bn2.Round)
 	if res == 0 {
-		addr1 := string(bn1.LeaderID.ID())
-		addr2 := string(bn2.LeaderID.ID())
-		return strings.Compare(addr1, addr2)
+		id1 := int(bn1.LeaderID.ID())
+		id2 := int(bn2.LeaderID.ID())
+		return returnOne(id1 - id2)
+	}
+	return res
+}
+
+func returnOne(res int) int {
+	if res == 0 {
+		return res
 	} else if res < 0 {
 		return -1
-	} else {
+	} else if res > 0 {
 		return +1
 	}
 }

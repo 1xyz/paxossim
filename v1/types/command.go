@@ -59,3 +59,23 @@ type reConfigCommand struct {
 	// New Leader configuration
 	NewLeaders []v1.Addr
 }
+
+type SlotCommandMap map[Slot]Command
+
+func (s SlotCommandMap) Get(slot Slot) (Command, bool) {
+	result, ok := s[slot]
+	return result, ok
+}
+
+func (s SlotCommandMap) Contains(slot Slot) bool {
+	_, ok := s[slot]
+	return ok
+}
+
+func (s SlotCommandMap) Remove(slot Slot) {
+	delete(s, slot)
+}
+
+func (s SlotCommandMap) Assign(slot Slot, c Command) {
+	s[slot] = c
+}

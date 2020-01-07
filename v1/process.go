@@ -35,7 +35,7 @@ func (pt ProcessType) String() string {
 }
 
 // ProcessInbox Identifier in this Paxos system
-type ProcessID string
+type ProcessID int
 
 type Addr interface {
 	// Return a unique identifier (aka. address) for this process
@@ -58,6 +58,16 @@ type ProcessInbox interface {
 type ProcessOutbox interface {
 	// Recv for the next message
 	Recv() (Message, error)
+}
+
+// Process - interface allowing a runnable entity with message I/O
+type Process interface {
+	ProcessInbox
+	ProcessOutbox
+}
+
+func NewProcess(id ProcessID, pt ProcessType) Process {
+	return newBasicProcess(id, pt)
 }
 
 type basicAddr struct {
