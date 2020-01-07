@@ -13,48 +13,48 @@ const InitialSlotID Slot = 1
 
 type Command interface {
 	// The client unique id
-	ClientID() string
+	GetClientID() string
 
 	// The command unique id
-	CommandID() string
+	GetCommandID() string
 
 	// Operation
-	Op() string
+	GetOp() string
 }
 
 // Indicates a unique Command issued by the client to a Replica
 // For a unique <ClientID, CommandID> will always map to a unique Op.
-type basicCommand struct {
+type BasicCommand struct {
 	// Client unique Id
-	clientID string
+	ClientID string
 
 	// Unique command ID
-	commandID string
+	CommandID string
 
 	// Operation associated with this command
-	op string
+	Op string
 }
 
-func (b basicCommand) ClientID() string {
-	return b.clientID
+func (b BasicCommand) GetClientID() string {
+	return b.ClientID
 }
 
-func (b basicCommand) Op() string {
-	return b.op
+func (b BasicCommand) GetOp() string {
+	return b.Op
 }
 
-func (b basicCommand) CommandID() string {
-	return b.commandID
+func (b BasicCommand) GetCommandID() string {
+	return b.CommandID
 }
 
-func (b basicCommand) String() string {
+func (b BasicCommand) String() string {
 	return fmt.Sprintf("ClientID: %v CommandID: %v Op: %v",
-		b.clientID, b.commandID, b.op)
+		b.ClientID, b.CommandID, b.Op)
 }
 
 // A Reconfiguration Command issued
-type reConfigCommand struct {
-	basicCommand
+type ReConfigCommand struct {
+	BasicCommand
 
 	// New Leader configuration
 	NewLeaders []v1.Addr

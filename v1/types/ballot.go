@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 	v1 "github.com/1xyz/paxossim/v1"
-	"strings"
 )
 
 // A BallotNumber in paxos has the property that it has can
@@ -40,7 +39,7 @@ func returnOne(res int) int {
 		return res
 	} else if res < 0 {
 		return -1
-	} else if res > 0 {
+	} else {
 		return +1
 	}
 }

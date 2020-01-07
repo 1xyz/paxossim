@@ -14,7 +14,7 @@ type Message interface {
 // MessageExchange - Facilitates message exchanges between Paxos processes.
 type MessageExchange interface {
 	// Send a message to this specific Paxos process identified by its ProcessID
-	Send(dest ProcessID, m Message) error
+	Send(dest Addr, m Message) error
 
 	// Broadcast a message all Paxos process of a specified type
 	SendAll(pt ProcessType, m Message) error

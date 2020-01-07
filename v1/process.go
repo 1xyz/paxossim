@@ -112,7 +112,7 @@ func (b basicProcess) ID() ProcessID {
 }
 
 func (b basicProcess) Type() ProcessType {
-	return b.Type()
+	return b.pt
 }
 
 func (b basicProcess) Send(m Message) error {
