@@ -149,8 +149,12 @@ func makeSet(acceptors []v1.Addr) v1.AddrSet {
 	return result
 }
 
-const fakeLeaderID = v1.ProcessID(100)
-const fakeAcceptorID = v1.ProcessID(200)
+const (
+	fakeLeaderID    = v1.ProcessID(100)
+	fakeAcceptorID  = v1.ProcessID(200)
+	fakeCommanderID = v1.ProcessID(300)
+	fakeScoutID     = v1.ProcessID(400)
+)
 
 func newFakePValue(round int, leaderID v1.Addr) types.PValue {
 	return types.PValue{
