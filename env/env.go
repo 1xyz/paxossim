@@ -48,10 +48,10 @@ func NewEnv(nFailures int, nClients int) *Env {
 	log.WithFields(log.Fields{"nReplicas": nReplicas}).Debug("Constructed replicas")
 
 	// construct the clients
-	clients := make([]*paxossim.Client, 0, nClients)
+	clients := make([]*paxossim.Client, nClients, nClients)
 	for i := 0; i < nClients; i++ {
 		id := fmt.Sprintf("client %d", i)
-		clients[i] = append(clients, paxossim.NewClient(id, replicas, ClientReqInterval))
+		clients[i] = paxossim.NewClient(id, replicas, ClientReqInterval)
 	}
 
 	return &Env{

@@ -26,17 +26,20 @@ func NewCommander(exchange v1.MessageExchange, leader v1.Addr, acceptors []v1.Ad
 	// it is possibl for leaders across go-routines to increment this
 	processID := v1.ProcessID(atomic.AddInt32(&commanderCount, 1))
 
-	return &Commander{
+	cmdr := &Commander{
 		Process:   v1.NewProcess(processID, v1.Commander),
 		exchange:  exchange,
 		leader:    leader,
 		acceptors: acceptors,
 		pvalue:    pvalue,
 	}
+
+	exchange.Register(cmdr)
+	return cmdr
 }
 
 func (cmdr *Commander) Run() {
-	ctxLog := log.WithFields(log.Fields{"Addr": cmdr.GetAddr()})
+	ctxLog := log.WithFields(log.Fields{"Addr": cmdr.GetAddr(), "Method": "Commander.Run"})
 	addrSet := cmdr.broadcastToAcceptors()
 
 	for {
@@ -63,6 +66,7 @@ func (cmdr *Commander) broadcastToAcceptors() v1.AddrSet {
 		cmdr.exchange.Send(acceptor, phase2aMessage)
 		addrSet.Add(acceptor)
 	}
+
 	return addrSet
 }
 
