@@ -37,6 +37,8 @@ func NewMessageExchange() MessageExchange {
 // basicMessageExchange - bare-bones implementation of MessageExchange
 // here the sendAll method sequentially sends message to each of recipients
 type basicMessageExchange struct {
+	// ToDo: in retrospect, it is not a good idea to use an interface
+	// ToDo: as a key, we go around it by creating a default instance
 	// Lookup ProcessInbox by the process identifier
 	addrToProcessInbox map[Addr]ProcessInbox
 
@@ -45,10 +47,16 @@ type basicMessageExchange struct {
 }
 
 func (bme basicMessageExchange) Send(dest Addr, m Message) error {
-	v, ok := bme.addrToProcessInbox[dest]
+	addr := NewAddress(dest.ID(), dest.Type())
+	v, ok := bme.addrToProcessInbox[addr]
 	if !ok {
 		return fmt.Errorf("not-found: process with id %v not-found", dest)
 	}
+	log.WithFields(log.Fields{
+		"Method":      "exchange.send",
+		"MessageType": fmt.Sprintf("%T", m),
+		"Dest":        addr,
+		"Source":      m.Src()}).Debugf("SendMessage")
 	return v.Send(m)
 }
 
@@ -59,7 +67,10 @@ func (bme basicMessageExchange) SendAll(pt ProcessType, m Message) error {
 	}
 	for e := entries.Front(); e != nil; e = e.Next() {
 		p := e.Value.(ProcessInbox)
-		ctxLog := log.WithFields(log.Fields{"destID": p.ID(), "destType": p.Type(), "Source": m.Src()})
+		ctxLog := log.WithFields(log.Fields{
+			"MessageType": fmt.Sprintf("%T", m),
+			"Dest":        fmt.Sprintf("(%v-%v)", p.ID(), p.Type()),
+			"Source":      m.Src()})
 		err := p.Send(m)
 		ctxLog.Debugf("SendMessage ")
 		if err != nil {
@@ -70,21 +81,23 @@ func (bme basicMessageExchange) SendAll(pt ProcessType, m Message) error {
 }
 
 func (bme basicMessageExchange) Register(p ProcessInbox) error {
-	_, ok := bme.addrToProcessInbox[p.(Addr)]
+	addr := NewAddress(p.ID(), p.Type())
+	_, ok := bme.addrToProcessInbox[addr]
 	if ok {
 		return fmt.Errorf("duplicate: process with id %v", p.ID())
 	}
-	bme.addrToProcessInbox[p.(Addr)] = p
+	bme.addrToProcessInbox[addr] = p
 	bme.typeToProcessInbox.put(p)
 	return nil
 }
 
 func (bme basicMessageExchange) UnRegister(p ProcessInbox) error {
-	_, ok := bme.addrToProcessInbox[p.(Addr)]
+	addr := NewAddress(p.ID(), p.Type())
+	_, ok := bme.addrToProcessInbox[addr]
 	if !ok {
 		return fmt.Errorf("not-found: process with id %v", p.ID())
 	}
-	delete(bme.addrToProcessInbox, p.(Addr))
+	delete(bme.addrToProcessInbox, addr)
 	bme.typeToProcessInbox.remove(p)
 	return nil
 }

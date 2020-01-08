@@ -37,7 +37,12 @@ func NewEnv(nFailures int, nClients int) *Env {
 	for i := 0; i < nReplicas; i++ {
 		replicas[i] = components.NewReplica(exchange, leaderAddr)
 	}
-	log.WithFields(log.Fields{"nReplicas": nReplicas}).Debug("Constructed replicas")
+	log.WithFields(log.Fields{
+		"nFailures": nFailures,
+		"nReplicas": nReplicas,
+		"nClients":  nClients,
+		"nLeaders":  nLeaders,
+	}).Debug("Components constructed")
 
 	// construct the clients
 	clients := make([]*components.Client, nClients, nClients)

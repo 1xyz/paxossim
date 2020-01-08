@@ -54,14 +54,15 @@ func NewReplica(exchange v1.MessageExchange, leaders []v1.Addr) *Replica {
 		leaders:   leaders,
 	}
 
-	exchange.Register(r)
+	err := exchange.Register(r)
+	if err != nil {
+		log.Panicf("exchange.Register error %v", err)
+	}
 	return r
 }
 
 func (r *Replica) Run() {
-	ctxLog := log.WithFields(log.Fields{
-		"id": r.ID(), "type": r.Type(),
-	})
+	ctxLog := log.WithFields(log.Fields{"Addr": r.GetAddr()})
 
 	for {
 		msg, err := r.Process.Recv()
@@ -75,14 +76,12 @@ func (r *Replica) Run() {
 }
 
 func (r *Replica) handleMessage(message v1.Message) {
-	ctxLog := log.WithFields(log.Fields{
-		"id": r.ID(), "type": r.Type(),
-	})
+	ctxLog := log.WithFields(log.Fields{"Addr": r.GetAddr(), "Method": "handleMessage"})
 
 	switch v := message.(type) {
 	case messages.RequestMessage:
 		rm := message.(messages.RequestMessage)
-		ctxLog.Debugf("%v", rm)
+		ctxLog.Debugf("Received Requestmessage: [%v]", rm)
 		r.requests = append(r.requests, rm.Command)
 
 	case messages.DecisionMessage:
@@ -142,9 +141,12 @@ func (r *Replica) propose() {
 
 		// enqueue this proposal and sent it to all leaders
 		r.proposals[r.slotIn] = req
-		pm := messages.NewProposedMessage(r, r.slotIn, req)
+		pm := messages.NewProposedMessage(r.GetAddr(), r.slotIn, req)
 		for _, addr := range r.leaders {
-			r.exchange.Send(addr, pm)
+			err := r.exchange.Send(addr, pm)
+			if err != nil {
+				log.Panicf("exchange.Send error %v", err)
+			}
 		}
 		r.slotIn++
 	}

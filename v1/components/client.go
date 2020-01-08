@@ -55,14 +55,13 @@ func (c *Client) Run() {
 			ctxLog.Debug("done recvd")
 			return
 
-		case t := <-c.ticker.C:
+		case <-c.ticker.C:
 			requestMessage := messages.NewRequestMessage(c.GetAddr(), types.BasicCommand{
 				ClientID:  fmt.Sprintf("%v", c.GetAddr()),
 				CommandID: c.nextCommandID(),
 				Op:        "OP",
 			})
 			c.exchange.SendAll(v1.Replica, requestMessage)
-			ctxLog.Debugf("Send message %v at time %v", requestMessage, t)
 		}
 	}
 }

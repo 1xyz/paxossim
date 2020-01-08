@@ -3,6 +3,7 @@ package components
 import (
 	v1 "github.com/1xyz/paxossim/v1"
 	"github.com/1xyz/paxossim/v1/types"
+	log "github.com/sirupsen/logrus"
 )
 
 var leaderCount = 0
@@ -38,6 +39,12 @@ func NewLeader(exchange v1.MessageExchange, acceptors []v1.Addr) *Leader {
 		},
 	}
 
-	exchange.Register(l)
+	ctxLog := log.WithFields(log.Fields{"Addr": l.GetAddr()})
+	ctxLog.Debugf("Created leader")
+
+	err := exchange.Register(l)
+	if err != nil {
+		log.Panicf("exchange.Register error %v", err)
+	}
 	return l
 }

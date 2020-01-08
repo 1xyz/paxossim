@@ -22,7 +22,7 @@ func init() {
 
 func main() {
 	e := env.NewEnv(NFailures, NClients)
-	log.WithFields(log.Fields{"e": e}).Debug("Constructed environment")
+	log.Debug("Constructed environment")
 	e.Run()
 	time.Sleep(10 * time.Second)
 	e.Stop()

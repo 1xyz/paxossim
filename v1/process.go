@@ -47,6 +47,13 @@ type Addr interface {
 	Type() ProcessType
 }
 
+func NewAddress(id ProcessID, pt ProcessType) Addr {
+	return basicAddr{
+		id: id,
+		pt: pt,
+	}
+}
+
 // ProcessInbox - interface allowing a Paxos process to be addressed & sent messages
 type ProcessInbox interface {
 	// Address of the inbox
@@ -86,7 +93,7 @@ func (b basicAddr) ID() ProcessID {
 }
 
 func (b basicAddr) Type() ProcessType {
-	return b.Type()
+	return b.pt
 }
 
 func (b basicAddr) String() string {
