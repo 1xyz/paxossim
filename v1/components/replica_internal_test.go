@@ -185,28 +185,3 @@ func TestReplica_NewDecisionNotMatchingProposal(t *testing.T) {
 	})
 }
 
-func newTestRequestMessage(commandID string) messages.RequestMessage {
-	return messages.RequestMessage{
-		Command: types.BasicCommand{
-			ClientID:  "client:1",
-			CommandID: commandID,
-			Op:        "ADD",
-		},
-	}
-}
-
-func newLeaders() []v1.Addr {
-	nLeaders := 2
-	leaders := make([]v1.Addr, nLeaders, nLeaders)
-	for i := 0; i < nLeaders; i++ {
-		leaders[i] = &v1fakes.FakeAddr{
-			IDStub: func() v1.ProcessID {
-				return v1.ProcessID(100)
-			},
-			TypeStub: func() v1.ProcessType {
-				return v1.Leader
-			},
-		}
-	}
-	return leaders
-}
