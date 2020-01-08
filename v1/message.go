@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 )
 
 // Message - interface intended to be implemented by
@@ -26,6 +27,13 @@ type MessageExchange interface {
 	UnRegister(p ProcessInbox) error
 }
 
+func NewMessageExchange() MessageExchange {
+	return &basicMessageExchange{
+		addrToProcessInbox: make(map[Addr]ProcessInbox),
+		typeToProcessInbox: make(typeToProcessMap),
+	}
+}
+
 // basicMessageExchange - bare-bones implementation of MessageExchange
 // here the sendAll method sequentially sends message to each of recipients
 type basicMessageExchange struct {
@@ -33,7 +41,7 @@ type basicMessageExchange struct {
 	addrToProcessInbox map[Addr]ProcessInbox
 
 	// Lookup processes by the process type
-	typeToProcessInbox *typeToProcessMap
+	typeToProcessInbox typeToProcessMap
 }
 
 func (bme basicMessageExchange) Send(dest Addr, m Message) error {
@@ -51,7 +59,9 @@ func (bme basicMessageExchange) SendAll(pt ProcessType, m Message) error {
 	}
 	for e := entries.Front(); e != nil; e = e.Next() {
 		p := e.Value.(ProcessInbox)
+		ctxLog := log.WithFields(log.Fields{"destID": p.ID(), "destType": p.Type(), "Source": m.Src()})
 		err := p.Send(m)
+		ctxLog.Debugf("SendMessage ")
 		if err != nil {
 			return fmt.Errorf("send failed: to process=%v %v", p, err)
 		}

@@ -56,7 +56,7 @@ func (b BasicCommand) String() string {
 type ReConfigCommand struct {
 	BasicCommand
 
-	// New Leader configuration
+	// New leader configuration
 	NewLeaders []v1.Addr
 }
 

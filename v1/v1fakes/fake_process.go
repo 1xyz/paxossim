@@ -8,6 +8,16 @@ import (
 )
 
 type FakeProcess struct {
+	GetAddrStub        func() v1.Addr
+	getAddrMutex       sync.RWMutex
+	getAddrArgsForCall []struct {
+	}
+	getAddrReturns struct {
+		result1 v1.Addr
+	}
+	getAddrReturnsOnCall map[int]struct {
+		result1 v1.Addr
+	}
 	IDStub        func() v1.ProcessID
 	iDMutex       sync.RWMutex
 	iDArgsForCall []struct {
@@ -53,6 +63,58 @@ type FakeProcess struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeProcess) GetAddr() v1.Addr {
+	fake.getAddrMutex.Lock()
+	ret, specificReturn := fake.getAddrReturnsOnCall[len(fake.getAddrArgsForCall)]
+	fake.getAddrArgsForCall = append(fake.getAddrArgsForCall, struct {
+	}{})
+	fake.recordInvocation("GetAddr", []interface{}{})
+	fake.getAddrMutex.Unlock()
+	if fake.GetAddrStub != nil {
+		return fake.GetAddrStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.getAddrReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeProcess) GetAddrCallCount() int {
+	fake.getAddrMutex.RLock()
+	defer fake.getAddrMutex.RUnlock()
+	return len(fake.getAddrArgsForCall)
+}
+
+func (fake *FakeProcess) GetAddrCalls(stub func() v1.Addr) {
+	fake.getAddrMutex.Lock()
+	defer fake.getAddrMutex.Unlock()
+	fake.GetAddrStub = stub
+}
+
+func (fake *FakeProcess) GetAddrReturns(result1 v1.Addr) {
+	fake.getAddrMutex.Lock()
+	defer fake.getAddrMutex.Unlock()
+	fake.GetAddrStub = nil
+	fake.getAddrReturns = struct {
+		result1 v1.Addr
+	}{result1}
+}
+
+func (fake *FakeProcess) GetAddrReturnsOnCall(i int, result1 v1.Addr) {
+	fake.getAddrMutex.Lock()
+	defer fake.getAddrMutex.Unlock()
+	fake.GetAddrStub = nil
+	if fake.getAddrReturnsOnCall == nil {
+		fake.getAddrReturnsOnCall = make(map[int]struct {
+			result1 v1.Addr
+		})
+	}
+	fake.getAddrReturnsOnCall[i] = struct {
+		result1 v1.Addr
+	}{result1}
 }
 
 func (fake *FakeProcess) ID() v1.ProcessID {
@@ -277,6 +339,8 @@ func (fake *FakeProcess) TypeReturnsOnCall(i int, result1 v1.ProcessType) {
 func (fake *FakeProcess) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.getAddrMutex.RLock()
+	defer fake.getAddrMutex.RUnlock()
 	fake.iDMutex.RLock()
 	defer fake.iDMutex.RUnlock()
 	fake.recvMutex.RLock()

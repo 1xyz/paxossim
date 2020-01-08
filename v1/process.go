@@ -14,14 +14,16 @@ const (
 	Leader
 	Replica
 	Scout
+	Client
 )
 
 var ptStrings = map[ProcessType]string{
 	Acceptor:  "Acceptor",
 	Commander: "Commander",
-	Leader:    "Leader",
+	Leader:    "leader",
 	Replica:   "Replica",
 	Scout:     "Scout",
+	Client:    "Client",
 }
 
 // stringer implementation for ProcessType
@@ -64,6 +66,7 @@ type ProcessOutbox interface {
 type Process interface {
 	ProcessInbox
 	ProcessOutbox
+	GetAddr() Addr
 }
 
 func NewProcess(id ProcessID, pt ProcessType) Process {
@@ -113,6 +116,13 @@ func (b basicProcess) ID() ProcessID {
 
 func (b basicProcess) Type() ProcessType {
 	return b.pt
+}
+
+func (b basicProcess) GetAddr() Addr {
+	return basicAddr{
+		id: b.ID(),
+		pt: b.Type(),
+	}
 }
 
 func (b basicProcess) Send(m Message) error {

@@ -118,14 +118,20 @@ func (r *Replica) handleMessage(message v1.Message) {
 	}
 }
 
+// propose - if there are any pending requests, create proposals by assigning slots to
+// the request's command and send to leaders
 func (r *Replica) propose() {
 	for {
+		// check to see if the requests queue is empty or if we have reached the window limit
 		if len(r.requests) == 0 || r.slotIn >= (r.slotOut+Window) {
 			break
 		}
 
+		// Dequeue this request from the requests queue
 		req := r.requests[0]
 		r.requests = r.requests[1:]
+
+		// check to see if a reconfiguration command needs to be applied
 		if r.slotIn > Window && r.decisions.Contains(r.slotIn-Window) {
 			cmd, ok := r.proposals[r.slotIn-Window].(types.ReConfigCommand)
 			if ok {
@@ -134,6 +140,7 @@ func (r *Replica) propose() {
 			}
 		}
 
+		// enqueue this proposal and sent it to all leaders
 		r.proposals[r.slotIn] = req
 		pm := messages.NewProposedMessage(r, r.slotIn, req)
 		for _, addr := range r.leaders {

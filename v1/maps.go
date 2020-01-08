@@ -37,3 +37,24 @@ func (mm typeToProcessMap) remove(k ProcessInbox) {
 		}
 	}
 }
+
+type AddrSet map[Addr]bool
+
+func (a AddrSet) Contains(addr Addr) bool {
+	_, ok := a[addr]
+	return ok
+}
+
+func (a AddrSet) Add(addr Addr) {
+	a[addr] = true
+}
+
+func (a AddrSet) Remove(addr Addr) {
+	if a.Contains(addr) {
+		delete(a, addr)
+	}
+}
+
+func (a AddrSet) Len() int {
+	return len(a)
+}

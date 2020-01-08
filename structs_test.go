@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	L1 = "Leader:1"
-	L2 = "Leader:2"
+	L1 = "leader:1"
+	L2 = "leader:2"
 	R1 = 0
 	R2 = 10
 )
