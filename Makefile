@@ -12,10 +12,10 @@ info:
 	@echo "---------------------------------------" 
 
 build: clean fmt
-	$(GO) build -o bin/$(BINARY) -v v1/cmd/cmd.go
+	$(GO) build -o bin/v1/$(BINARY) -v v1/cmd/cmd.go
 
 test: clean fmt
-	$(GO) test -v 
+	$(GO) test -v ./...
 
 fmt:
 	$(GO) fmt ./...
