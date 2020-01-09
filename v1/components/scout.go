@@ -64,7 +64,11 @@ func (scout *Scout) broadcastToAcceptors() v1.AddrSet {
 	addrSet := make(v1.AddrSet)
 	phase1aMessage := messages.NewPhase1aMessage(scout.GetAddr(), scout.bn)
 	for _, acceptor := range scout.acceptors {
-		scout.exchange.Send(acceptor, phase1aMessage)
+		err := scout.exchange.Send(acceptor, phase1aMessage)
+		if err != nil {
+			log.Panicf("scout.exchange.send failed %v", err)
+		}
+
 		addrSet.Add(acceptor)
 	}
 
@@ -79,12 +83,20 @@ func (scout *Scout) handleMessage(phase1bMessage messages.Phase1bMessage, addrSe
 		scout.pvalues.Update(phase1bMessage.PValues)
 		if float64(addrSet.Len()) < majority {
 			adoptedMessage := messages.NewAdoptedMessage(scout.GetAddr(), scout.bn, scout.pvalues)
-			scout.exchange.Send(scout.leader, adoptedMessage)
+			err := scout.exchange.Send(scout.leader, adoptedMessage)
+			if err != nil {
+				log.Panicf("scout.exchange.send failed %v", err)
+			}
+
 			return false
 		}
 	} else {
 		premptedMessage := messages.NewPremptedMessage(scout.GetAddr(), phase1bMessage.BallotNumber)
-		scout.exchange.Send(scout.leader, premptedMessage)
+		err := scout.exchange.Send(scout.leader, premptedMessage)
+		if err != nil {
+			log.Panicf("scout.exchange.send failed %v", err)
+		}
+
 		return false
 	}
 

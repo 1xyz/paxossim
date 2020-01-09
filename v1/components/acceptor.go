@@ -65,7 +65,11 @@ func (accp *Acceptor) handleMessage(message v1.Message) {
 		}
 
 		phase1bMessage := messages.NewPhase1bMessage(accp.GetAddr(), *accp.BN, accp.Accepted)
-		accp.exchange.Send(phase1aMessage.Src(), phase1bMessage)
+		err := accp.exchange.Send(phase1aMessage.Src(), phase1bMessage)
+		if err != nil {
+			log.Warnf("accp.exchange.send failed %v", err)
+		}
+
 		return
 
 	case messages.Phase2aMessage:
@@ -80,7 +84,11 @@ func (accp *Acceptor) handleMessage(message v1.Message) {
 		}
 
 		phase2bMessage := messages.NewPhase2bMessage(accp.GetAddr(), *accp.BN)
-		accp.exchange.Send(phase2aMessage.Src(), phase2bMessage)
+		err := accp.exchange.Send(phase2aMessage.Src(), phase2bMessage)
+		if err != nil {
+			log.Warnf("accp.exchange.send failed %v", err)
+		}
+
 		return
 
 	default:

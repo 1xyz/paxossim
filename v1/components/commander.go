@@ -63,7 +63,11 @@ func (cmdr *Commander) broadcastToAcceptors() v1.AddrSet {
 	addrSet := make(v1.AddrSet)
 	phase2aMessage := messages.NewPhase2aMessage(cmdr.GetAddr(), cmdr.pvalue)
 	for _, acceptor := range cmdr.acceptors {
-		cmdr.exchange.Send(acceptor, phase2aMessage)
+		err := cmdr.exchange.Send(acceptor, phase2aMessage)
+		if err != nil {
+			log.Panicf("cmdr.exchange.send failed %v", err)
+		}
+
 		addrSet.Add(acceptor)
 	}
 
@@ -76,12 +80,20 @@ func (cmdr *Commander) handleMessage(phase2bMessage messages.Phase2bMessage, add
 		addrSet.Remove(phase2bMessage.Src())
 		if float64(addrSet.Len()) < majority {
 			decisionMessage := messages.NewDecisionMessage(cmdr.GetAddr(), cmdr.pvalue.Slot, cmdr.pvalue.Command)
-			cmdr.exchange.SendAll(v1.Replica, decisionMessage)
+			err := cmdr.exchange.SendAll(v1.Replica, decisionMessage)
+			if err != nil {
+				log.Panicf("cmdr.exchange.sendAll failed %v", err)
+			}
+
 			return false
 		}
 	} else {
 		premptedMessage := messages.NewPremptedMessage(cmdr.GetAddr(), phase2bMessage.BallotNumber)
-		cmdr.exchange.Send(cmdr.leader, premptedMessage)
+		err := cmdr.exchange.Send(cmdr.leader, premptedMessage)
+		if err != nil {
+			log.Panicf("cmdr.exchange.send failed %v", err)
+		}
+
 		return false
 	}
 
