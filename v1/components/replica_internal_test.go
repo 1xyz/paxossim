@@ -184,4 +184,3 @@ func TestReplica_NewDecisionNotMatchingProposal(t *testing.T) {
 		})
 	})
 }
-

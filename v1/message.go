@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"sync"
 )
 
 // Message - interface intended to be implemented by
@@ -31,6 +32,7 @@ func NewMessageExchange() MessageExchange {
 	return &basicMessageExchange{
 		addrToProcessInbox: make(map[Addr]ProcessInbox),
 		typeToProcessInbox: make(typeToProcessMap),
+		mu:                 &sync.RWMutex{},
 	}
 }
 
@@ -44,9 +46,13 @@ type basicMessageExchange struct {
 
 	// Lookup processes by the process type
 	typeToProcessInbox typeToProcessMap
+
+	mu *sync.RWMutex
 }
 
 func (bme basicMessageExchange) Send(dest Addr, m Message) error {
+	bme.mu.RLock()
+	defer bme.mu.RUnlock()
 	addr := NewAddress(dest.ID(), dest.Type())
 	v, ok := bme.addrToProcessInbox[addr]
 	if !ok {
@@ -61,6 +67,8 @@ func (bme basicMessageExchange) Send(dest Addr, m Message) error {
 }
 
 func (bme basicMessageExchange) SendAll(pt ProcessType, m Message) error {
+	bme.mu.RLock()
+	defer bme.mu.RUnlock()
 	entries, ok := bme.typeToProcessInbox.get(pt)
 	if !ok || entries.Len() == 0 {
 		return fmt.Errorf("not-found: No process(es) with type:%v found", pt)
@@ -82,6 +90,8 @@ func (bme basicMessageExchange) SendAll(pt ProcessType, m Message) error {
 
 func (bme basicMessageExchange) Register(p ProcessInbox) error {
 	addr := NewAddress(p.ID(), p.Type())
+	bme.mu.Lock()
+	defer bme.mu.Unlock()
 	_, ok := bme.addrToProcessInbox[addr]
 	if ok {
 		return fmt.Errorf("duplicate: process with id %v", p.ID())
@@ -93,6 +103,8 @@ func (bme basicMessageExchange) Register(p ProcessInbox) error {
 
 func (bme basicMessageExchange) UnRegister(p ProcessInbox) error {
 	addr := NewAddress(p.ID(), p.Type())
+	bme.mu.Lock()
+	defer bme.mu.Unlock()
 	_, ok := bme.addrToProcessInbox[addr]
 	if !ok {
 		return fmt.Errorf("not-found: process with id %v", p.ID())
