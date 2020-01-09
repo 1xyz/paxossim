@@ -59,6 +59,11 @@ func (scout *Scout) Run() {
 			break
 		}
 	}
+
+	err := scout.exchange.UnRegister(scout)
+	if err != nil {
+		ctxLog.Panicf("scout.exchange.UnRegister %v", err)
+	}
 }
 func (scout *Scout) broadcastToAcceptors() v1.AddrSet {
 	addrSet := make(v1.AddrSet)

@@ -31,6 +31,7 @@ func NewAcceptor(exchange v1.MessageExchange) *Acceptor {
 		BN:       nil,
 		exchange: exchange,
 	}
+	log.Debugf("Created acceptor")
 
 	err := exchange.Register(a)
 	if err != nil {
@@ -42,6 +43,7 @@ func NewAcceptor(exchange v1.MessageExchange) *Acceptor {
 
 func (accp *Acceptor) Run() {
 	ctxLog := log.WithFields(log.Fields{"Addr": accp.GetAddr()})
+	ctxLog.Debugf("Running acceptor")
 
 	for {
 		msg, err := accp.Process.Recv()
@@ -55,6 +57,7 @@ func (accp *Acceptor) Run() {
 
 func (accp *Acceptor) handleMessage(message v1.Message) {
 	ctxLog := log.WithFields(log.Fields{"Addr": accp.GetAddr(), "Method": "Acceptor.handleMessage"})
+	ctxLog.Debugf("Recd a message of type %T", message)
 	switch v := message.(type) {
 	case messages.Phase1aMessage:
 		phase1aMessage := message.(messages.Phase1aMessage)
@@ -67,7 +70,7 @@ func (accp *Acceptor) handleMessage(message v1.Message) {
 		phase1bMessage := messages.NewPhase1bMessage(accp.GetAddr(), *accp.BN, accp.Accepted)
 		err := accp.exchange.Send(phase1aMessage.Src(), phase1bMessage)
 		if err != nil {
-			log.Warnf("accp.exchange.send failed %v", err)
+			log.Debugf("accp.exchange.send failed %v", err)
 		}
 
 		return
@@ -86,7 +89,7 @@ func (accp *Acceptor) handleMessage(message v1.Message) {
 		phase2bMessage := messages.NewPhase2bMessage(accp.GetAddr(), *accp.BN)
 		err := accp.exchange.Send(phase2aMessage.Src(), phase2bMessage)
 		if err != nil {
-			log.Warnf("accp.exchange.send failed %v", err)
+			log.Debugf("accp.exchange.send failed %v", err)
 		}
 
 		return

@@ -57,6 +57,11 @@ func (cmdr *Commander) Run() {
 			break
 		}
 	}
+
+	err := cmdr.exchange.UnRegister(cmdr)
+	if err != nil {
+		ctxLog.Panicf("cmdr.exchange.UnRegister %v", err)
+	}
 }
 
 func (cmdr *Commander) broadcastToAcceptors() v1.AddrSet {

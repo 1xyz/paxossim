@@ -19,17 +19,27 @@ type Env struct {
 	leaders []*components.Leader
 
 	clients []*components.Client
+
+	acceptors []*components.Acceptor
 }
 
 func NewEnv(nFailures int, nClients int) *Env {
 	nReplicas := nFailures + 1
 	nLeaders := nFailures + 1
+	nAcceptors := (2 * nFailures) + 1
 	exchange := v1.NewMessageExchange()
+
+	acceptorAddr := make([]v1.Addr, nAcceptors, nAcceptors)
+	acceptors := make([]*components.Acceptor, nAcceptors, nAcceptors)
+	for i := 0; i < nAcceptors; i++ {
+		acceptors[i] = components.NewAcceptor(exchange)
+		acceptorAddr[i] = acceptors[i].GetAddr()
+	}
 
 	leaderAddr := make([]v1.Addr, nLeaders, nLeaders)
 	leaders := make([]*components.Leader, nLeaders, nLeaders)
 	for i := 0; i < nLeaders; i++ {
-		leaders[i] = components.NewLeader(exchange, nil)
+		leaders[i] = components.NewLeader(exchange, acceptorAddr)
 		leaderAddr[i] = leaders[i].GetAddr()
 	}
 
@@ -37,11 +47,13 @@ func NewEnv(nFailures int, nClients int) *Env {
 	for i := 0; i < nReplicas; i++ {
 		replicas[i] = components.NewReplica(exchange, leaderAddr)
 	}
+
 	log.WithFields(log.Fields{
-		"nFailures": nFailures,
-		"nReplicas": nReplicas,
-		"nClients":  nClients,
-		"nLeaders":  nLeaders,
+		"nFailures":  nFailures,
+		"nReplicas":  nReplicas,
+		"nClients":   nClients,
+		"nLeaders":   nLeaders,
+		"nAcceptors": nAcceptors,
 	}).Debug("Components constructed")
 
 	// construct the clients
@@ -51,17 +63,21 @@ func NewEnv(nFailures int, nClients int) *Env {
 	}
 
 	return &Env{
-		exchange: exchange,
-		leaders:  leaders,
-		replicas: replicas,
-		clients:  clients,
+		exchange:  exchange,
+		leaders:   leaders,
+		replicas:  replicas,
+		clients:   clients,
+		acceptors: acceptors,
 	}
 }
 
 func (e *Env) Run() {
-	// for _, l := range e.Leaders {
-	// 	go l.Run()
-	// }
+	for _, a := range e.acceptors {
+		go a.Run()
+	}
+	for _, l := range e.leaders {
+		go l.Run()
+	}
 	for _, r := range e.replicas {
 		go r.Run()
 	}
@@ -72,7 +88,7 @@ func (e *Env) Run() {
 
 func (e *Env) Stop() {
 	for _, c := range e.clients {
-		log.Debugf("Stopping client %v", c)
+		log.Infof("Stopping client %v", c)
 		c.Stop()
 	}
 }
