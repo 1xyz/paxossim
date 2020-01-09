@@ -20,7 +20,7 @@ type (
 		C Command
 	}
 
-	// Decision from the Leader to the Replica containing
+	// Decision from the leader to the Replica containing
 	// the slot and its assigned command
 	DecisionMessage struct {
 		*BasicMessage
@@ -41,8 +41,8 @@ type (
 		S Entity
 	}
 
-	// Message sent by the Leader(Scout) to the
-	// Acceptors containing the BallotNumber during the
+	// Message sent by the leader(Scout) to the
+	// acceptors containing the BallotNumber during the
 	// Phase1 of Paxos
 	P1aMessage struct {
 		*PhaseMessage
@@ -58,8 +58,8 @@ type (
 		Accepted *PValues
 	}
 
-	// Message sent by the Leader(Commander) to the
-	// Acceptors containing the PValue (BallotNum, Slot, Command)
+	// Message sent by the leader(Commander) to the
+	// acceptors containing the PValue (BallotNum, Slot, Command)
 	P2aMessage struct {
 		*PhaseMessage
 		PV *PValue
@@ -79,7 +79,7 @@ type (
 		BN *BallotNumber
 	}
 
-	// Message sent by the Scout to the Leader on a successful adoption
+	// Message sent by the Scout to the leader on a successful adoption
 	// of ballot by majority of the acceptors.
 	AdoptedMessage struct {
 		*BasicMessage

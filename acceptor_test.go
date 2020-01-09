@@ -24,7 +24,7 @@ func TestAcceptor_HandleMsg_NewBN(t *testing.T) {
 	acceptor := paxossim.NewAcceptor("acceptor:1")
 	bn := &paxossim.BallotNumber{
 		Round:    1,
-		LeaderID: "Leader:0",
+		LeaderID: "leader:0",
 	}
 	fakeLeader := &paxossimfakes.FakeEntity{}
 	acceptor.HandleMsg(paxossim.NewP1aMessage("Scout:0", fakeLeader, bn))
@@ -45,12 +45,12 @@ func TestAcceptor_HandleMsg_OldBN(t *testing.T) {
 	fakeLeader := &paxossimfakes.FakeEntity{}
 	acceptor.HandleMsg(paxossim.NewP1aMessage("Scout:0", fakeLeader, &paxossim.BallotNumber{
 		Round:    100,
-		LeaderID: "Leader:0",
+		LeaderID: "leader:0",
 	}))
 
 	oldBn := &paxossim.BallotNumber{
 		Round:    2,
-		LeaderID: "Leader:0",
+		LeaderID: "leader:0",
 	}
 
 	// assert no new adoption tool place
@@ -63,7 +63,7 @@ func TestAcceptor_HandleMsg_PVAccepted(t *testing.T) {
 	fakeLeader := &paxossimfakes.FakeEntity{}
 	bn := &paxossim.BallotNumber{
 		Round:    100,
-		LeaderID: "Leader:0",
+		LeaderID: "leader:0",
 	}
 	acceptor.HandleMsg(paxossim.NewP1aMessage("Scout:0", fakeLeader, bn))
 
@@ -96,7 +96,7 @@ func TestAcceptor_HandleMsg_PVRejected(t *testing.T) {
 	acceptor := paxossim.NewAcceptor("acceptor:1")
 	bn := &paxossim.BallotNumber{
 		Round:    100,
-		LeaderID: "Leader:0",
+		LeaderID: "leader:0",
 	}
 
 	// create a new p2 request with a match ballot, leader
