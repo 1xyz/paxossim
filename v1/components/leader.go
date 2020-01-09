@@ -89,7 +89,7 @@ func (leader *Leader) spawnNewCommander(slot types.Slot) {
 
 func (leader *Leader) handleMessage(message v1.Message) {
 	ctxLog := log.WithFields(log.Fields{
-		"Addr": leader.GetAddr(),
+		"Addr":   leader.GetAddr(),
 		"Method": "leader.handleMessage",
 	})
 	ctxLog.Debugf("Recd a message of type %T", message)
